@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 
-export default function LoginPage() {
+export default function SignupPage() {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -12,12 +12,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleLogin = async (e: any) => {
+  const handleSignup = async (e: any) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    const { error } = await supabase.auth.signInWithPassword({
+    // ✅ Create user
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
@@ -28,7 +29,18 @@ export default function LoginPage() {
       return;
     }
 
-    // ✅ Redirect to dashboard
+    const user = data.user;
+
+    if (user) {
+      // ✅ Insert into profiles table
+      await supabase.from("profiles").insert({
+        id: user.id,
+        email: user.email,
+        subscription_status: "inactive",
+      });
+    }
+
+    // ✅ Redirect
     router.push("/dashboard");
   };
 
@@ -38,10 +50,10 @@ export default function LoginPage() {
       <div className="bg-gray-800 p-8 rounded-xl w-full max-w-md shadow-lg">
 
         <h1 className="text-2xl font-bold mb-6 text-center">
-          Login to GolfRewards ⛳
+          Create Your Account ⛳
         </h1>
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleSignup} className="space-y-4">
 
           {/* Email */}
           <input
@@ -74,18 +86,18 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full bg-green-600 hover:bg-green-700 py-3 rounded-lg font-semibold"
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Creating account..." : "Sign Up"}
           </button>
         </form>
 
-        {/* Signup link */}
+        {/* Login link */}
         <p className="text-sm text-gray-400 mt-4 text-center">
-          Don’t have an account?{" "}
+          Already have an account?{" "}
           <span
             className="text-green-400 cursor-pointer"
-            onClick={() => router.push("/signup")}
+            onClick={() => router.push("/login")}
           >
-            Sign up
+            Login
           </span>
         </p>
 

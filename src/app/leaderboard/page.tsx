@@ -2,89 +2,72 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { useRouter } from "next/navigation";
-
-export default function Leaderboard() {
-  const [scores, setScores] = useState<any[]>([]);
+import BackButton from "@/components/BackButton";
+export default function LeaderboardPage() {
+  const [winners, setWinners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
-    fetchScores();
+    fetchWinners();
   }, []);
 
-  const fetchScores = async () => {
+  async function fetchWinners() {
     const { data, error } = await supabase
-      .from("scores")
-      .select("*")
-      .order("score", { ascending: false })
-      .limit(10);
+      .from("draws")
+      .select(`
+        id,
+        draw_date,
+        profiles(email)
+      `)
+      .order("draw_date", { ascending: false });
 
-    if (!error && data) {
-      setScores(data);
+    if (!error) {
+      setWinners(data || []);
     }
 
     setLoading(false);
-  };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gray-100">
-        <p className="text-black-600">Loading leaderboard...</p>
-      </div>
-    );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4 flex justify-center">
-      <div className="w-full max-w-2xl">
+    <div className="min-h-screen bg-gray-900 text-white p-6">
+        <BackButton />
+      <h1 className="text-3xl font-bold mb-6 text-center">
+        🏆 Winners Leaderboard
+      </h1>
 
-        {/* 🔷 Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold text-black">
-            🏆 Leaderboard
-          </h1>
+      {loading ? (
+        <p className="text-center text-gray-400">Loading...</p>
+      ) : winners.length === 0 ? (
+        <p className="text-center text-gray-400">
+          No winners yet
+        </p>
+      ) : (
+        <div className="max-w-3xl mx-auto space-y-4">
 
-          <button
-            className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg"
-            onClick={() => router.push("/dashboard")}
-          >
-            Back
-          </button>
+          {winners.map((winner, index) => (
+            <div
+              key={winner.id}
+              className="bg-gray-800 p-4 rounded-xl flex justify-between items-center shadow"
+            >
+              {/* Rank */}
+              <span className="text-xl font-bold text-yellow-400">
+                #{index + 1}
+              </span>
+
+              {/* Email */}
+              <span className="text-gray-200">
+                {winner.profiles?.email || "Unknown"}
+              </span>
+
+              {/* Date */}
+              <span className="text-sm text-gray-400">
+                {new Date(winner.draw_date).toLocaleDateString()}
+              </span>
+            </div>
+          ))}
+
         </div>
-
-        {/* 🔷 Leaderboard Card */}
-        <div className="bg-white p-4 rounded-xl shadow text-black">
-          {scores.length === 0 ? (
-            <p className="text-gray-500">No scores yet</p>
-          ) : (
-            <ul className="space-y-3">
-              {scores.map((s, index) => (
-                <li
-                  key={s.id}
-                  className="flex justify-between items-center border p-3 rounded-lg"
-                >
-                  {/* Rank */}
-                  <span className="font-semibold w-12">
-                    #{index + 1}
-                  </span>
-
-                  {/* Score */}
-                  <span className="text-lg font-bold flex-1 text-center">
-                    {s.score}
-                  </span>
-
-                  {/* Date */}
-                  <span className="text-sm text-gray-500">
-                    {new Date(s.created_at).toLocaleDateString()}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-      </div>
+      )}
     </div>
   );
 }
