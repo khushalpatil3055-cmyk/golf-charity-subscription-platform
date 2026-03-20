@@ -122,4 +122,11 @@ Deployed using **Vercel**
 * UI kept simple and clean for usability
 * Optimized for quick development and clarity
 
+## For Testing Stripe
+Card: 4242 4242 4242 4242
+Expiry: 12/34 (any future date)
+CVV: 123 (any 3 digits)
+ZIP: 12345 (anything)
+---
+
 ---
