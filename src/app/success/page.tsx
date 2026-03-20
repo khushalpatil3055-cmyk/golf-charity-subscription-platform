@@ -13,11 +13,18 @@ export default function SuccessPage() {
   }, []);
 
   async function activateSubscription() {
+    console.log("SUCCESS PAGE LOADED");
+
+    // ✅ Get logged-in user
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
+    console.log("USER:", user);
+
+    // ❌ If no user → session lost after Stripe
     if (!user) {
+      alert("Session expired. Please login again.");
       router.push("/login");
       return;
     }
@@ -25,22 +32,42 @@ export default function SuccessPage() {
     const userId = user.id;
 
     // ✅ 1. Activate subscription
-    await supabase
+    const { error: updateError } = await supabase
       .from("profiles")
       .update({ subscription_status: "active" })
       .eq("id", userId);
 
+    if (updateError) {
+      console.error("UPDATE ERROR:", updateError);
+      alert("Failed to activate subscription");
+      return;
+    }
+
+    console.log("✅ Subscription activated");
+
     // ✅ 2. Add to draw (avoid duplicate)
-    const { data: existing } = await supabase
+    const { data: existing, error: fetchError } = await supabase
       .from("entries")
       .select("*")
       .eq("user_id", userId)
-      .single();
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error("FETCH ERROR:", fetchError);
+    }
 
     if (!existing) {
-      await supabase.from("entries").insert({
-        user_id: userId,
-      });
+      const { error: entryError } = await supabase
+        .from("entries")
+        .insert({ user_id: userId });
+
+      if (entryError) {
+        console.error("ENTRY ERROR:", entryError);
+      } else {
+        console.log("✅ Entry added");
+      }
+    } else {
+      console.log("User already in entries");
     }
 
     setLoading(false);
@@ -48,7 +75,6 @@ export default function SuccessPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-900 text-white">
-
       {loading ? (
         <h1 className="text-xl">Processing payment...</h1>
       ) : (
@@ -69,7 +95,6 @@ export default function SuccessPage() {
           </button>
         </>
       )}
-
     </div>
   );
 }
