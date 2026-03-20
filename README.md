@@ -62,8 +62,8 @@ npm install
 Create a `.env.local` file in root:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+NEXT_PUBLIC_SUPABASE_URL=https://zafuqapabymxvvhytxyt.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_BuaaJTMSRM6tdDsm-qk-XA_jkkdAAyx
 ```
 
 ---
@@ -127,6 +127,3 @@ Card: 4242 4242 4242 4242
 Expiry: 12/34 (any future date)
 CVV: 123 (any 3 digits)
 ZIP: 12345 (anything)
----
-
----

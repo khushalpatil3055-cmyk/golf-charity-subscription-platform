@@ -9,16 +9,16 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // ✅ If already logged in → redirect
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data.user) {
-        router.push("/dashboard");
-      }
-    };
-    checkUser();
-  }, []);
+ useEffect(() => {
+  const checkUser = async () => {
+    const { data } = await supabase.auth.getUser();
+    if (data.user) {
+      router.push("/dashboard");
+    }
+  };
+  checkUser();
+}, [router]);
+
 
  const handleSignup = async () => {
   const { data, error } = await supabase.auth.signUp({
@@ -29,15 +29,19 @@ export default function SignupPage() {
   if (error) {
     alert(error.message);
   } else {
-    // ✅ ADD THIS BLOCK
     if (data.user) {
-      await supabase.from("profiles").insert({
-        id: data.user.id,
-        email: data.user.email,
-      });
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .insert({
+          id: data.user.id,
+          email: data.user.email,
+        });
+
+      if (profileError) {
+        console.error("PROFILE ERROR:", profileError);
+      }
     }
 
-    // existing logic
     if (data.session) {
       router.push("/dashboard");
     } else {
@@ -46,6 +50,7 @@ export default function SignupPage() {
     }
   }
 };
+
 
   const handleGoogle = async () => {
     await supabase.auth.signInWithOAuth({
