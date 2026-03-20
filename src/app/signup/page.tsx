@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
@@ -9,8 +9,19 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // ✅ If already logged in → redirect
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data.user) {
+        router.push("/dashboard");
+      }
+    };
+    checkUser();
+  }, []);
+
   const handleSignup = async () => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
@@ -18,8 +29,13 @@ export default function SignupPage() {
     if (error) {
       alert(error.message);
     } else {
-      alert("Signup successful!");
-      router.push("/dashboard");
+      // ⚠️ IMPORTANT: check session
+      if (data.session) {
+        router.push("/dashboard"); // ✅ logged in
+      } else {
+        alert("Check your email to confirm signup 📩");
+        router.push("/login"); // ✅ safer
+      }
     }
   };
 
@@ -27,7 +43,7 @@ export default function SignupPage() {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: "http://localhost:3000/dashboard",
+        redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/dashboard`, // ✅ FIXED
       },
     });
   };
