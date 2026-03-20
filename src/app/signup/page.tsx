@@ -1,106 +1,71 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
   const router = useRouter();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const handleSignup = async (e: any) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    // ✅ Create user
-    const { data, error } = await supabase.auth.signUp({
+  const handleSignup = async () => {
+    const { error } = await supabase.auth.signUp({
       email,
       password,
     });
 
     if (error) {
-      setError(error.message);
-      setLoading(false);
-      return;
+      alert(error.message);
+    } else {
+      alert("Signup successful!");
+      router.push("/dashboard");
     }
+  };
 
-    const user = data.user;
-
-    if (user) {
-      // ✅ Insert into profiles table
-      await supabase.from("profiles").insert({
-        id: user.id,
-        email: user.email,
-        subscription_status: "inactive",
-      });
-    }
-
-    // ✅ Redirect
-    router.push("/dashboard");
+  const handleGoogle = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: "http://localhost:3000/dashboard",
+      },
+    });
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+      <div className="bg-gray-800 p-8 rounded-xl w-80">
+        <h1 className="text-2xl mb-6 text-center">Sign Up</h1>
 
-      <div className="bg-gray-800 p-8 rounded-xl w-full max-w-md shadow-lg">
+        <input
+          type="email"
+          placeholder="Email"
+          className="w-full mb-3 p-2 rounded bg-gray-700"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-        <h1 className="text-2xl font-bold mb-6 text-center">
-          Create Your Account ⛳
-        </h1>
+        <input
+          type="password"
+          placeholder="Password"
+          className="w-full mb-4 p-2 rounded bg-gray-700"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-        <form onSubmit={handleSignup} className="space-y-4">
+        <button
+          onClick={handleSignup}
+          className="w-full bg-green-600 py-2 rounded mb-3"
+        >
+          Sign Up
+        </button>
 
-          {/* Email */}
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full p-3 rounded-lg bg-gray-700 outline-none"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-
-          {/* Password */}
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full p-3 rounded-lg bg-gray-700 outline-none"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          {/* Error */}
-          {error && (
-            <p className="text-red-400 text-sm">{error}</p>
-          )}
-
-          {/* Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700 py-3 rounded-lg font-semibold"
-          >
-            {loading ? "Creating account..." : "Sign Up"}
-          </button>
-        </form>
-
-        {/* Login link */}
-        <p className="text-sm text-gray-400 mt-4 text-center">
-          Already have an account?{" "}
-          <span
-            className="text-green-400 cursor-pointer"
-            onClick={() => router.push("/login")}
-          >
-            Login
-          </span>
-        </p>
-
+        <button
+          onClick={handleGoogle}
+          className="w-full bg-red-500 py-2 rounded"
+        >
+          Continue with Google
+        </button>
       </div>
     </div>
   );

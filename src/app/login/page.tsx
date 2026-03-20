@@ -1,94 +1,70 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const handleLogin = async (e: any) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
+  const handleLogin = async () => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error) {
-      setError(error.message);
-      setLoading(false);
-      return;
+      alert(error.message);
+    } else {
+      router.push("/dashboard");
     }
+  };
 
-    // ✅ Redirect to dashboard
-    router.push("/dashboard");
+  const handleGoogle = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: "http://localhost:3000/dashboard",
+      },
+    });
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+      <div className="bg-gray-800 p-8 rounded-xl w-80">
+        <h1 className="text-2xl mb-6 text-center">Login</h1>
 
-      <div className="bg-gray-800 p-8 rounded-xl w-full max-w-md shadow-lg">
+        <input
+          type="email"
+          placeholder="Email"
+          className="w-full mb-3 p-2 rounded bg-gray-700"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-        <h1 className="text-2xl font-bold mb-6 text-center">
-          Login to GolfRewards ⛳
-        </h1>
+        <input
+          type="password"
+          placeholder="Password"
+          className="w-full mb-4 p-2 rounded bg-gray-700"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
 
-        <form onSubmit={handleLogin} className="space-y-4">
+        <button
+          onClick={handleLogin}
+          className="w-full bg-blue-600 py-2 rounded mb-3"
+        >
+          Login
+        </button>
 
-          {/* Email */}
-          <input
-            type="email"
-            placeholder="Email"
-            className="w-full p-3 rounded-lg bg-gray-700 outline-none"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-
-          {/* Password */}
-          <input
-            type="password"
-            placeholder="Password"
-            className="w-full p-3 rounded-lg bg-gray-700 outline-none"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          {/* Error */}
-          {error && (
-            <p className="text-red-400 text-sm">{error}</p>
-          )}
-
-          {/* Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-green-600 hover:bg-green-700 py-3 rounded-lg font-semibold"
-          >
-            {loading ? "Logging in..." : "Login"}
-          </button>
-        </form>
-
-        {/* Signup link */}
-        <p className="text-sm text-gray-400 mt-4 text-center">
-          Don’t have an account?{" "}
-          <span
-            className="text-green-400 cursor-pointer"
-            onClick={() => router.push("/signup")}
-          >
-            Sign up
-          </span>
-        </p>
-
+        <button
+          onClick={handleGoogle}
+          className="w-full bg-red-500 py-2 rounded"
+        >
+          Continue with Google
+        </button>
       </div>
     </div>
   );
