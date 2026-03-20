@@ -20,24 +20,32 @@ export default function SignupPage() {
     checkUser();
   }, []);
 
-  const handleSignup = async () => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+ const handleSignup = async () => {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+  });
 
-    if (error) {
-      alert(error.message);
-    } else {
-      // ⚠️ IMPORTANT: check session
-      if (data.session) {
-        router.push("/dashboard"); // ✅ logged in
-      } else {
-        alert("Check your email to confirm signup 📩");
-        router.push("/login"); // ✅ safer
-      }
+  if (error) {
+    alert(error.message);
+  } else {
+    // ✅ ADD THIS BLOCK
+    if (data.user) {
+      await supabase.from("profiles").insert({
+        id: data.user.id,
+        email: data.user.email,
+      });
     }
-  };
+
+    // existing logic
+    if (data.session) {
+      router.push("/dashboard");
+    } else {
+      alert("Check your email to confirm signup 📩");
+      router.push("/login");
+    }
+  }
+};
 
   const handleGoogle = async () => {
     await supabase.auth.signInWithOAuth({
