@@ -4,34 +4,44 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
-
+const ADMIN_EMAIL = "khushalpatil202407100510016@gmail.com";
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+useEffect(() => {
+  const checkUser = async () => {
+    const { data } = await supabase.auth.getUser();
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data.user) {
+    if (data.user) {
+      if (data.user.email === ADMIN_EMAIL) {
+        router.push("/admin");
+      } else {
         router.push("/dashboard");
       }
-    };
-    checkUser();
-  }, []);
-
-  const handleLogin = async () => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      alert(error.message);
-    } else if (data.session) {
-      router.push("/dashboard");
     }
   };
+  checkUser();
+}, []);
+
+ const handleLogin = async () => {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    alert(error.message);
+  } else if (data.session) {
+    const userEmail = data.user.email;
+
+    if (userEmail === ADMIN_EMAIL) {
+      router.push("/admin"); // 👈 redirect to admin
+    } else {
+      router.push("/dashboard"); // 👈 normal users
+    }
+  }
+};
 
   const handleGoogle = async () => {
     await supabase.auth.signInWithOAuth({
