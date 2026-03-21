@@ -7,11 +7,28 @@ export default function AdminPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [winners, setWinners] = useState<any[]>([]);
 
-  useEffect(() => {
-    fetchUsers();
-    fetchWinners();
-  }, []);
+ useEffect(() => {
+  checkAdmin();   // 👈 add this
+  fetchUsers();
+  fetchWinners();
+}, []);
+const checkAdmin = async () => {
+  const { data, error } = await supabase.auth.getUser();
 
+  // ❌ Not logged in
+  if (!data.user) {
+    window.location.href = "/login";
+    return;
+  }
+
+  // ❌ Not admin
+  if (data.user.email !== "khushalpatil202407100510016@gmail.com") {
+    window.location.href = "/dashboard";
+    return;
+  }
+
+  // ✅ Admin allowed
+};
   // ✅ Fetch all users
   async function fetchUsers() {
     const { data } = await supabase.from("profiles").select("*");
