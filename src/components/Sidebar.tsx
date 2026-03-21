@@ -19,9 +19,7 @@ export default function Sidebar() {
         👤 Profile
       </Link>
 
-      <Link href="/admin" className="block hover:text-purple-400">
-        🛠 Admin
-      </Link>
+     
     </div>
   );
 }
